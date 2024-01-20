@@ -1,47 +1,38 @@
-# # myapp/views.py
-import json
-from rest_framework import generics,status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import CustomUser
-from .serializers import UserSerializer
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import get_user_model
-from rest_framework.authtoken.models import Token
+# views.py
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth import authenticate
+from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-class SignUp(APIView):
+class UserSignupView(APIView):
     permission_classes = [AllowAny]
-    def post(self, request):
-        params = request.data
+    def post(self, request, format=None):
         print(request.data)
-        try:
-            user = CustomUser.objects.create_user(Username=params["Username"], Email=params["Email"], password=params["password"], DOB="2000-11-26", Name=params["Name"], Phone=params["Phone"])
-            token,stat = Token.objects.get_or_create(user=user)
+        user_serializer = UserSerializer(data=request.data)
+        print("checking is valid", user_serializer)
+        if user_serializer.is_valid():
+            print("is valid!")
+            user_serializer.save()
+            return Response(user_serializer.data, status=201)
+        print(user_serializer.errors)
+        return Response(user_serializer.errors, status=400)
 
-            return JsonResponse({
-                "token":token.key,
-                "id": user.id,
-                }, status=200)
-        except:
-            print(2)
-            return JsonResponse({"message":"failure"}, status=400)
-        # serializer = UserSerializer(data=request.data)
-        # print(request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     
-        #     #return JsonResponse({'Token': token}, status=200)
-        #     return JsonResponse({"message": 1})
-        # else:
-        #     return JsonResponse(serializer.errors ,status=200)
-        
-class Login(APIView):
-    def post(request):
-        if request.method=='POST':
-            return JsonResponse("lolwa", status=200)
+class UserLoginView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, format=None):
+        Email = request.data.get('Email')
+        password = request.data.get('password')
+        print(Email, password)
+        user = authenticate(username=Email, password=password) # security measures
+        if user is not None and user.is_active:
+            token_serializer = UserSerializer(user)
+            return Response(token_serializer.data, status=200)
+        return Response({"msg": "Invalid credentials"}, status=403)
 
+class TokenVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
 
-2
+    def get(self, request, format=None):
+        user_serializer = UserSerializer(request.user)
+        return Response(user_serializer.data)

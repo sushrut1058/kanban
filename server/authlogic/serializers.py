@@ -1,22 +1,24 @@
 # serializers.py
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from .models import CustomUser
-
-User = get_user_model()
+from rest_framework_jwt.settings import api_settings
 
 class UserSerializer(serializers.ModelSerializer):
+    token = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ('id', 'Email', 'Username', 'Name', 'Phone', 'DOB', 'password')
+        fields = (
+            'Email', 'Username', 'Name', 'password', 'Phone', 'DOB', 'is_active', 'is_staff', 'token',
+        )
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def get_token(self, obj):
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(obj)
+        token = jwt_encode_handler(payload)
+        return token
 
     def create(self, validated_data):
-        Email = validated_data['Email']
-        Name = validated_data['Name']
-        Phone = validated_data['Phone']
-        password = validated_data['password']
-        DOB = "2000-11-26"
-        Username = validated_data['Username']
-
-        user = CustomUser.objects.create_user(Username=Username,Name=Name,Email=Email,password=password,DOB=DOB,Phone=Phone)
-        return user
+        return CustomUser.objects.create_user(**validated_data)

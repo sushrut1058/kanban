@@ -1,29 +1,44 @@
 //Signup Screen
-import {React,useState} from 'react';
+import {React,useContext,useState} from 'react';
 import { View, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-import {signup} from '../../actions/authfuncs';
-const SignupScreen = ({navigation}) => {
-  
-  const redir_login = ()=>{
-    navigation.navigate('LoginScreen');
-  }
-  const redir_home = ()=>{
-    navigation.navigate('HomeScreen');
-  }
-  const SignUp = ()=>{
-    const formData = {
-      'Name': name,
-      'Username': username,
-      'Phone': phone,
-      'Email': email,
-      'password': password
-    }
-    signup({navigation},formData);
+import {handleSignup} from '../../actions/authfuncs';
+import { AuthContext } from '../../context/AuthContext';
 
+const SignupScreen = () => {
+  
+  context = useContext(AuthContext);
+  const {setAuthenticated, isAuthenticated, userObj, setUserObj, logout} = context;
+
+  const navigation = useNavigation();
+
+  const signUp = async ()=>{
+    try{
+      const formData = {
+        'Name': name,
+        'Username': username,
+        'Phone': phone,
+        'Email': email,
+        'password': password,
+        'DOB':'2000-11-26'
+      }
+      const response = await handleSignup(formData);
+      if (response && response.data.token) {
+        await AsyncStorage.setItem('token', response.data.token);
+        setAuthenticated(true);
+        setUserObj(response.data);
+        console.log("[SignUp] ",isAuthenticated);
+        console.log("[SignUp] ",response.data);
+        navigation.navigate('HomeScreen');
+      }
+    }catch (e) {
+      console.error(e);
+    } 
   }
+
   const [name,changeName] = useState("")
   const [phone,changePhone] = useState("")
   const [email,changeEmail] = useState("")
@@ -31,17 +46,22 @@ const SignupScreen = ({navigation}) => {
   const [password,changePassword] = useState("")
 
   return (
-    <View style={{padding:100}}>
-      <Text>Sign Up Screen</Text>
-      <CustomInput text={name} changeText={changeName} placeholder="Name" />
-      <CustomInput text={phone} changeText={changePhone} placeholder="+91 9999999999"/>
-      <CustomInput text={email} changeText={changeEmail} placeholder="Email" />
-      <CustomInput text={username} changeText={changeUsername} placeholder="Username" />
-      <CustomInput text={password} changeText={changePassword} placeholder="Password" pass={true}/>
-      <CustomButton onPressHandler={SignUp} title="Sign Up!"/>
-      <CustomButton onPressHandler={redir_home} title="Home"/>
-      <CustomButton onPressHandler={redir_login} title="Login"/>
-    </View>
+    (!isAuthenticated || !userObj) ?
+    <>
+      <View style={{padding:100}}>
+        <Text>Sign Up Screen</Text>
+        <CustomInput text={name} changeText={changeName} placeholder="Name" />
+        <CustomInput text={phone} changeText={changePhone} placeholder="+91 9999999999"/>
+        <CustomInput text={email} changeText={changeEmail} placeholder="Email" />
+        <CustomInput text={username} changeText={changeUsername} placeholder="Username" />
+        <CustomInput text={password} changeText={changePassword} placeholder="Password" pass={true}/>
+        <CustomButton onPressHandler={signUp} title="Sign Up!"/>
+        <CustomButton onPressHandler={() => navigation.navigate('HomeScreen')} title="Home"/>
+        <CustomButton onPressHandler={() => navigation.navigate('LoginScreen')} title="Login"/>
+      </View>
+    </>
+    :
+    navigation.navigate("HomeScreen")
   );
 };
 
