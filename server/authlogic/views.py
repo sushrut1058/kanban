@@ -32,7 +32,6 @@ class UserLoginView(APIView):
 
 class TokenVerificationView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, format=None):
         user_serializer = UserSerializer(request.user)
         return Response(user_serializer.data)
