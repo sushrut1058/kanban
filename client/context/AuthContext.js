@@ -1,7 +1,7 @@
 // AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { verifyToken } from '../actions/authfuncs';
+import { refresh_Token, verifyToken } from '../utils/authfuncs';
 
 export const AuthContext = createContext();
 
@@ -18,6 +18,15 @@ export const AuthProvider = ({ children }) => {
         if(userData){
           setAuthenticated(true);
           setUserObj(userData);
+          console.log("Token verified")
+        }else{
+          refresh_Token();
+          userData_ref = await verifyToken();
+          if(userData_ref){
+            setAuthenticated(true);
+            setUserObj(userData_ref);
+            console.log("Refreshed and Token verified")
+          }
         }
       } catch (e) {
         console.log(e);
@@ -32,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     await AsyncStorage.removeItem('token');
     setAuthenticated(false);
-    setUserObj(None);
+    setUserObj({});
   }
 
   return (

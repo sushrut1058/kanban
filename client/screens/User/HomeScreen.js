@@ -4,91 +4,99 @@ import { View, Text, Button, TouchableOpacity, StyleSheet,PanResponder, Animated
 import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
 import { AuthContext } from '../../context/AuthContext';
-import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { DragDrop } from '../../components/DragDrop';
 import { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
-
+import BoardWrapper from './board/BoardWrapper'
 
 
 const HomeScreen = ({navigation}) => {
 
   const {isAuthenticated, setAuthenticated, userObj, setUserObj, logout} = useContext(AuthContext);  
 
-  const [tasks, setTasks] = useState([
-    {key:1, title: '1', status: 'todo' },
-    {key:2, title: '2', status: 'in_progress' },
-    {key:3, title: '3', status: 'todo' },
-    {key:4, title: '4', status: 'blocked'}
-  ]);
+//   const [tasks, setTasks] = useState([
+//     {key:1, title: '1', status: 'todo', points:3 },
+//     {key:2, title: '2', status: 'in_progress', points:4 },
+//     {key:3, title: '3', status: 'todo', points:1 },
+//     {key:4, title: '4', status: 'blocked', points:5}
+//   ]);
 
-  const [dropCounter, setDropCounter] = useState(0);
+//   const [desc, setDesc] = useState([
+//     {key:1, desc:"1st task"},
+//     {key:2, desc:"2nd task"},
+//     {key:3, desc:"3rd task"},
+//     {key:4, desc:"4th task"}
+//   ])
+
+//   const [dropCounter, setDropCounter] = useState(0);
     
-  const COLUMN_STATUS = ['todo', 'in_progress', 'blocked', 'done'];
+//   const COLUMN_STATUS = ['todo', 'in_progress', 'blocked', 'done'];
 
-  const handleDrop = (taskId, {x, y}) => {
-    // Logic to determine the new status of the task based on the drop coordinates (x, y)
-    // This is a simplified example, you'll need to adjust it based on your layout
-    // // For example:
+//   const handleDrop = (taskId, {x, y}) => {
+//     // Logic to determine the new status of the task based on the drop coordinates (x, y)
+//     // This is a simplified example, you'll need to adjust it based on your layout
+//     // // For example:
     
-    const screenWidth = Dimensions.get('window').width;
-    const columnWidth = screenWidth / COLUMN_STATUS.length;
-    const columnIndex = Math.min(
-        COLUMN_STATUS.length - 1,
-        Math.floor(x / columnWidth)
-    );
+//     const screenWidth = Dimensions.get('window').width;
+//     const columnWidth = screenWidth / COLUMN_STATUS.length;
+//     const columnIndex = Math.min(
+//         COLUMN_STATUS.length - 1,
+//         Math.floor(x / columnWidth)
+//     );
 
-    const newStatus = COLUMN_STATUS[columnIndex];
+//     const newStatus = COLUMN_STATUS[columnIndex];
 
-    // // Find the task and update its status
-    const updatedTasks = tasks.map(task => {
-        if (task.key === taskId) {
-            return { ...task, status: newStatus };
-        }
-        return task;
-    });
-    setTasks(updatedTasks);
-    setDropCounter(dropCounter+1);
-    // console.log(updatedTasks);
-    // TODO: Make an API call to persist the change
-};
+//     // // Find the task and update its status
+//     const updatedTasks = tasks.map(task => {
+//         if (task.key === taskId) {
+//             return { ...task, status: newStatus };
+//         }
+//         return task;
+//     });
+//     setTasks(updatedTasks);
+//     setDropCounter(dropCounter+1);
+//     // TODO: Make an API call to persist the change
+// };
 
-  const renderTask = ({ item }) => (
-    <DragDrop key={item.key} onDrop={({x,y}) => handleDrop(item.key, {x, y})}>
-      <View style={styles.taskCard}>
-          <Text style={styles.taskText}>{item.title}</Text>
-      </View>
-    </DragDrop>
-  );
+//   const renderTask = ({ item }) => (
+//     <DragDrop key={item.key} onDrop={({x,y}) => handleDrop(item.key, {x, y})}>
+//       <View style={styles.taskCard}>
+//           <Text style={styles.taskText}>{item.title}</Text>
+//       </View>
+//     </DragDrop>
+//   );
   
-  const renderColumn = (status) => (
-    <View key={status + dropCounter} style={styles.column}>
-        <Text style={styles.columnHeader}>{status.toUpperCase()}</Text>
-        {tasks.filter((task) => task.status === status).map((taskItem) => renderTask({ item: taskItem }))}
-    </View>   
-  );
+//   const renderColumn = (status) => (
+//     <View key={status + dropCounter} style={styles.column}>
+//         <Text style={styles.columnHeader}>{status.toUpperCase()}</Text>
+//         {tasks.filter((task) => task.status === status).map((taskItem) => renderTask({ item: taskItem }))}
+//     </View>   
+//   );
 
-  const saveTable = () => {
-    
-  }
+//   const saveTable = () => {
+//     //post tasks object
+//   }
 
   return (
     
-    <View style={styles.container}>
-      <GestureHandlerRootView>
-        <Text style={styles.header}>Planning Board</Text>
-        <View style={styles.board}>
-            {/* {renderColumn('todo')}
-            {renderColumn('in_progress')}
-            {renderColumn('blocked')}
-            {renderColumn('done')} */}
-            {COLUMN_STATUS.map(renderColumn)}
+    // <View style={styles.container}>
+    //   <GestureHandlerRootView>
+    //     <Text style={styles.header}>Planning Board</Text>
+    //     <View style={styles.board}>
+    //         {/* {renderColumn('todo')}
+    //         {renderColumn('in_progress')}
+    //         {renderColumn('blocked')}
+    //         {renderColumn('done')} */}
+    //         {COLUMN_STATUS.map(renderColumn)}
 
-        </View>
-      </GestureHandlerRootView>
-      <CustomButton onPressHandler={saveTable} title="Save" />
-      <CustomButton onPressHandler={logout} title="Logout" />
-    </View>
+    //     </View>
+    //   </GestureHandlerRootView>
+    //   <CustomButton onPressHandler={saveTable} title="Save" />
+    //   <CustomButton onPressHandler={logout} title="Logout" />
+    // </View>
+    <View><BoardWrapper/></View>
+    
+
   );
 };
 

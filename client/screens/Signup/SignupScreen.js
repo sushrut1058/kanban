@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-import {handleSignup} from '../../actions/authfuncs';
+import {handleSignup} from '../../utils/authfuncs';
 import { AuthContext } from '../../context/AuthContext';
 
 const SignupScreen = () => {
@@ -26,14 +26,26 @@ const SignupScreen = () => {
         'DOB':'2000-11-26'
       }
       const response = await handleSignup(formData);
-      if (response && response.data.token) {
-        await AsyncStorage.setItem('token', response.data.token);
-        setAuthenticated(true);
-        setUserObj(response.data);
-        console.log("[SignUp] ",isAuthenticated);
-        console.log("[SignUp] ",response.data);
-        navigation.navigate('HomeScreen');
+
+      if(!response.ok){
+        throw new Error ("Signup failed!")
       }
+
+      // const data = await response.json();
+
+      AsyncStorage.setItem('accessToken',response.access);
+      AsyncStorage.setItem('refreshToken',response.refresh);
+      setUserObj(response.user);
+      navigation.navigate(HomeScreen);
+
+      // if (response && response.data.token) {
+      //   await AsyncStorage.setItem('token', response.data.token);
+      //   setAuthenticated(true);
+      //   setUserObj(response.data);
+      //   console.log("[SignUp] ",isAuthenticated);
+      //   console.log("[SignUp] ",response.data);
+      //   navigation.navigate('HomeScreen');
+      // }
     }catch (e) {
       console.error(e);
     } 

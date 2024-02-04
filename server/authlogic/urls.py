@@ -1,10 +1,17 @@
-# myapp/urls.py
+# urls.py
+
 from django.urls import path
-from .views import UserSignupView, UserLoginView
-from rest_framework.decorators import api_view, permission_classes
-from django.conf.urls.static import static
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView
+)
+from .views import UserSignupView, UserLoginView, TokenVerificationView
 
 urlpatterns = [
-    path('signup/', UserSignupView.as_view(), name='signup'),
-    path('login/', UserLoginView.as_view(), name='login'),
+    path('signup/', UserSignupView.as_view(), name='user_signup'),
+    path('login/', UserLoginView.as_view(), name='user_login'),
+    path('token/verify/', TokenVerificationView.as_view(), name='token-verify'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh')
+    # ... other urls ...
 ]

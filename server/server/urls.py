@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('authlogic/',include('authlogic.urls')),
+    path('actions/',include('boardapp.urls')),
 ]

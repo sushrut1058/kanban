@@ -8,7 +8,8 @@ import CustomInput from '../../components/CustomInput';
 import { AuthContext } from '../../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from '../User/HomeScreen';
-import {login} from '../../actions/authfuncs'
+import {login} from '../../utils/authfuncs';
+
 
 export default function LoginScreen() {
 
@@ -20,12 +21,27 @@ export default function LoginScreen() {
   const onPressLogin = async () => {
     try{
       response = await login(email, password);
-      if(response && response.data.token){
-        await AsyncStorage.setItem('token', response.data.token);
-        setAuthenticated(true);
-        setUserObj(response.data.token);
-        navigation.navigate(HomeScreen);
+      
+      console.log(response);
+      if(!response){
+        throw new Error('Failed to login');
       }
+
+      // const data = await response.json();
+
+      AsyncStorage.setItem('accessToken', response.data.access);
+      AsyncStorage.setItem('refreshToken', response.data.refresh);
+      setUserObj(response.data.user);
+      setAuthenticated(true);
+      navigation.navigate(HomeScreen);
+      
+
+      // if(response && response.data.token){
+      //   await AsyncStorage.setItem('token', response.data.token);
+      //   setAuthenticated(true);
+      //   setUserObj(response.data.token);
+      //   navigation.navigate(HomeScreen);
+      // }
     }catch(e){
       console.log(e);
     }
