@@ -12,7 +12,7 @@ class Board(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     tasks = JSONField(default=list)
-    descriptions = JSONField(default=list)
+    descriptions = JSONField(default=dict)
 
     def __str__(self):
         return self.title

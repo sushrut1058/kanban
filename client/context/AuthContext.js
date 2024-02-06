@@ -1,7 +1,7 @@
 // AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refresh_Token, verifyToken } from '../utils/authfuncs';
+import { refresh_Token, verifyToken } from '../utils/authServices';
 
 export const AuthContext = createContext();
 

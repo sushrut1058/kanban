@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
-import {handleSignup} from '../../utils/authfuncs';
+import {handleSignup} from '../../utils/authServices';
 import { AuthContext } from '../../context/AuthContext';
 
 const SignupScreen = () => {

@@ -13,18 +13,16 @@ export const DragDrop = ({ children, onDrop }) => {
     const translateX = useSharedValue(0);
     const translateY = useSharedValue(0);
     const isDragging = useSharedValue(false); // Use a shared value for dragging state
-
+    
     const panGestureEvent = useAnimatedGestureHandler({
         onStart: (_, context) => {
-            isDragging.value = true; // Set dragging to true using shared value
             context.startX = translateX.value;
             context.startY = translateY.value;
         },
         onActive: (event, context) => {
-            // isDragging.value = true;
+            isDragging.value = true; // Set dragging to true using shared value
             translateX.value = context.startX + event.translationX;
             translateY.value = context.startY + event.translationY;
-            // console.log(isDragging)
         },
         onEnd: (event) => {
             isDragging.value = false;
@@ -41,9 +39,6 @@ export const DragDrop = ({ children, onDrop }) => {
                 { translateX: translateX.value },
                 { translateY: translateY.value },
             ],
-            // backgroundColor: 'yellow',
-            // zIndex: isDragging.value ? 999 : 0,
-            // elevation: isDragging.value ? 999 : 0,
             backgroundColor: isDragging.value ? 'blue': 'yellow'
         };
     });

@@ -8,7 +8,7 @@ import CustomInput from '../../components/CustomInput';
 import { AuthContext } from '../../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from '../User/HomeScreen';
-import {login} from '../../utils/authfuncs';
+import {login} from '../../utils/authServices';
 
 
 export default function LoginScreen() {

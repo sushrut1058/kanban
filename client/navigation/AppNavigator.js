@@ -8,6 +8,7 @@ import LoginScreen from '../screens/Login/LoginScreen';
 import ForgotPassword from '../screens/Login/ForgotPassword';
 import OTPScreen from '../screens/Signup/OTPScreen';
 import { AuthContext } from '../context/AuthContext';
+import BoardWrapper from '../screens/User/board/BoardWrapper';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,7 +27,10 @@ function AppNavigator(){
           <Stack.Screen name="OTPScreen" component={OTPScreen} />
           </>
           :
+          <>
           <Stack.Screen name="HomeScreen" component={HomeScreen}/>
+          <Stack.Screen name="BoardScreen" component={BoardWrapper}/>
+          </>
         }
       </Stack.Navigator>
     </NavigationContainer>
