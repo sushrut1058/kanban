@@ -1,5 +1,5 @@
 //HomeScreen.js
-import {React, useContext, useState, useRef, useEffect} from 'react';
+import {React, useContext, useState, useEffect, useCallback} from 'react';
 import { View, Text, Button, TouchableOpacity, StyleSheet,PanResponder, Animated, FlatList, Dimensions  } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../components/CustomButton';
@@ -9,23 +9,30 @@ import { DragDrop } from '../../components/DragDrop';
 import { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import BoardWrapper from './board/BoardWrapper'
 import { getBoard, getBoardList } from '../../utils/boardServices';
-
+import Header from '../../components/Header';
+import { useFocusEffect } from '@react-navigation/native';
 
 const HomeScreen = ({navigation}) => {
 
   const {isAuthenticated, setAuthenticated, userObj, setUserObj, logout} = useContext(AuthContext);  
   const [boards, setBoards] = useState([]); // State to store the list of boards
 
+  const fetchBoards = async () => {
+    const fetchedBoards = await getBoardList();
+    if (fetchedBoards) {
+      setBoards(fetchedBoards);
+    }
+  };
+
   useEffect(() => {
-    // Fetch the list of boards when the component mounts
-    const fetchBoards = async () => {
-      const fetchedBoards = await getBoardList();
-      if (fetchedBoards) {
-        setBoards(fetchedBoards); // Update the state with the fetched boards
-      }
-    };
     fetchBoards();
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBoards();
+    }, [])
+  );
 
   // Render each board in the list
   const renderBoard = ({ item }) => (
@@ -36,6 +43,7 @@ const HomeScreen = ({navigation}) => {
 
   return (
     <View>
+       <Header leftIconName="settings" rightIconName="logout" onLeftIconPress={() => {console.log("settings")}} onRightIconPress={logout}/>
       <Text>HomeScreen</Text>
      
       <CustomButton onPressHandler={()=>navigation.navigate("BoardScreen")} title="New Board"/>
@@ -44,7 +52,6 @@ const HomeScreen = ({navigation}) => {
         renderItem={renderBoard}
         keyExtractor={item => item.board_id.toString()}
       />
-      <CustomButton onPressHandler={logout} title="Logout"/>
     </View>
   );
 };

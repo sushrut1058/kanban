@@ -1,57 +1,70 @@
-//BoardWrapper.js
-import {useMemo, React, useContext, useState, useRef, useEffect, useCallback} from 'react';
-import { View, Text, Modal, Button, TouchableOpacity, StyleSheet,PanResponder, Animated, TextInput,FlatList, Dimensions  } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View, ImageBackground, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, TextInput,TouchableWithoutFeedback, Keyboard } from 'react-native';
 import CustomButton from '../../../components/CustomButton';
-import { AuthContext } from '../../../context/AuthContext';
+import { getBoard, updateBoard, deleteBoard } from '../../../utils/boardServices';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { DragDrop } from '../../../components/DragDrop';
-import { getBoard, updateBoard, createBoard, deleteBoard } from '../../../utils/boardServices';
+import Board from './Board';
+import Header from '../../../components/Header';
+import Footer from '../../../components/Footer';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { useFocusEffect } from '@react-navigation/native';
 
-const BoardWrapper = ({route, navigation}) => {
-    // const navigation = useNavigation();
-  const {isAuthenticated, setAuthenticated, userObj, setUserObj, logout} = useContext(AuthContext);  
+const status = ['todo', 'in_progress', 'blocked', 'done'];
+
+const BoardWrapper = ({ route, navigation }) => {
   const boardId = route.params?.id || 0;
   const [tasks, setTasks] = useState([]);
   const [desc, setDesc] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [Task,setTask] = useState(null);
 
-  const [selectedTask, setSelectedTask] = useState(null);
+
+  const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   const bottomSheetRef = useRef(null);
-	const snapPoints = useMemo(() => ['60%', '70%', '80%'], []);
 
-  const handleTaskPress = (task) => {
-    setSelectedTask(task);
-    bottomSheetRef.current.snapToIndex(0); // Open the bottom sheet
+  const snapPoints = useMemo(() => ['50%', '60%','80%'], []);
+
+  const handleAddPress = () => {
+    bottomSheetRef.current?.snapToIndex(0);
+    setBottomSheetVisible(true);
+    console.log("startcall");
   };
 
-  const handleSheetChanges = useCallback((index) => {
-    if (index === -1) {
-        // Bottom sheet is fully closed
-        setSelectedTask(null); // Reset selected task
+  // Close the bottom sheet and remove the overlay
+  const handleClosePress = () => {
+    bottomSheetRef.current?.close();
+    setBottomSheetVisible(false);
+    setTask(null);
+    console.log("closecall");
+  };
+
+  const fetchBoard = async () => {
+    try {
+      const boardData = await getBoard(boardId);
+      setTasks(boardData.tasks);
+      setDesc(boardData.descriptions);
+    } catch (e) {
+      console.error(e);
     }
-  }, []);
+  };
+  
 
   useEffect(() => {
-      const fetchBoard = async () => {
-          try {
-              setLoading(true);
-              const boardData = await getBoard(boardId);
-              setTasks(boardData.tasks);
-              setDesc(boardData.descriptions);
-              setLoading(false);
-          } catch (e) {
-              console.error(e);
-              setError(e);
-              setLoading(false);
-          }
-      };
+    if (boardId) {
+      fetchBoard();
+    }
+    console.log(desc);
+  }, []);
 
+  useFocusEffect(
+    useCallback(()=>{
       if (boardId) {
-          fetchBoard();
+        fetchBoard();
       }
-  }, [boardId]);
+      console.log(desc);
+    },[])
+  )
+
+  // Define other functions like saveTable and deleteTable here
 
   const saveTable = ()=>{
     const boardData = {
@@ -76,128 +89,131 @@ const BoardWrapper = ({route, navigation}) => {
     }
   }
   
-  const [dropCounter, setDropCounter] = useState(0);
-  const COLUMN_STATUS = ['todo', 'in_progress', 'blocked', 'done'];
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [points, setPoints] = useState('');
+  const [tag, setTag] = useState('');
 
-  const handleDrop = (taskId, {x, y}) => {
-    const screenWidth = Dimensions.get('window').width;
-    const columnWidth = screenWidth / COLUMN_STATUS.length;
-    const columnIndex = Math.min(
-        COLUMN_STATUS.length - 1,
-        Math.floor(x / columnWidth)
-    );
+  const onSave = () => {
+    let newId = (tasks.length+1).toString();
+
+      const newTask = {
+        key:newId,
+        title:title,
+        status:tag,
+      }
+      const newDesc = {
+        key:newId,
+        desc:description
+      }
+      setTasks([...tasks,newTask]);
+      setDesc([...desc, newDesc]);
     
-    const newStatus = COLUMN_STATUS[columnIndex];
+    // setTag('');
+    // setTitle('');
+    // setDescription('');
+    // setPoints('');
+  }
 
-    // // Find the task and update its status
-    const updatedTasks = tasks.map(task => {
-        if (task.key === taskId) {
-            return { ...task, status: newStatus };
-        }
-        return task;
-    });
-    setTasks(updatedTasks);
-    setDropCounter(dropCounter+1);
-    // TODO: Make an API call to persist the change
-};
+  const onCancel = (  ) => {
 
-  const renderTask = ({ item }) => (
-    <DragDrop key={item.key} onDrop={({x,y}) => handleDrop(item.key, {x, y})}>
-      <TouchableOpacity onPress={() => handleTaskPress(item)} style={styles.taskCard}>
-          <Text style={styles.taskText}>{item.title}</Text>
-      </TouchableOpacity>
-    </DragDrop>
-  );
+  }
+
+  const image = { uri: "https://i.pinimg.com/564x/f2/f1/c3/f2f1c39217bd937765322fd52dcc2b3a.jpg" };
   
-  const  renderColumn = (status) => (
-    <View key={status + dropCounter} style={styles.column}>
-        <Text style={styles.columnHeader}>{status.toUpperCase()}</Text>
-        {tasks.filter((task) => task.status === status).map((taskItem) => renderTask({ item: taskItem }))}
-    </View>   
-  );
-
   return (
-    <GestureHandlerRootView style={styles.flex1}>
-    <View style={styles.container}>
-      
-        <Text style={styles.header}>Planning Board</Text>
-        <View style={styles.board}>
-            {COLUMN_STATUS.map(renderColumn)}
-        </View>
-        
-      <CustomButton title="Save" onPressHandler={saveTable}/>
-      <CustomButton title="Delete" onPressHandler={deleteTable}/>
-      <CustomButton title="Back" onPressHandler={()=>navigation.goBack()}/>
-    </View>
-    <BottomSheet ref={bottomSheetRef} index={-1} snapPoints={snapPoints} style={styles.bottomSheet} onChange={handleSheetChanges} enablePanDownToClose={true}>
-        <View style={styles.contentContainer}>
-            {selectedTask && (
-                <>
-                    <Text style={styles.containerHeadline}>Task Details</Text>
-                    {/* ... task details and editing options ... */}
-                </>
-            )}
-        </View>
-    </BottomSheet>
+    
+    <GestureHandlerRootView style={styles.cunt} >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <View style={styles.cunt}>
+      <ImageBackground source={image} style={styles.image}>
 
+      
+      <Header leftIconName="arrow-back" rightIconName="save" onLeftIconPress={() => navigation.goBack()} onRightIconPress={() => saveTable()}/>
+
+      <Board tasks={tasks} setTasks={setTasks} style={{flex:1}} setOverlay={setBottomSheetVisible} overlay={isBottomSheetVisible} setKey={setTask}/>
+
+      <Footer onAddPress={handleAddPress} onInfoPress={()=>console.log("infopressed")} onDeletePress={()=>deleteTable()}/>
+
+      <View style={[isBottomSheetVisible?styles.overlay:{zIndex:-1}]} onTouchStart={()=>{handleClosePress()}}></View>
+      
+      <View style={[Task?styles.infoBox:{zIndex:-1}]} >
+        <View style={{...StyleSheet.absoluteFillObject}}>
+          <View style={{zIndex:50}}>
+            <Text style={{color:'white'}}>{Task?Task.title:"lololoo"}</Text>
+          </View>
+        </View>
+      </View>
+      
+      <BottomSheet ref={bottomSheetRef} style={{zIndex:500}} index={-1} snapPoints={snapPoints} enablePanDownToClose={true} onClose={()=>{handleClosePress}} >
+        <View style={styles.sheetContentContainer}>
+          <View style={styles.sheetHeader}>
+            <TouchableOpacity onPress={onCancel}>
+              <Text>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onSave}>
+              <Text>Save</Text>
+            </TouchableOpacity>
+          </View>
+          <TextInput style={styles.inputField} placeholder="Title" value={title} onChangeText={setTitle} />
+          <TextInput style={styles.inputField} placeholder="Description" value={description} onChangeText={setDescription} multiline />
+          <TextInput  style={styles.inputField} placeholder="Points" value={points} onChangeText={setPoints} keyboardType="numeric" />
+          <TextInput style={styles.inputField} placeholder="Tag" value={tag} onChangeText={setTag} />
+        </View>
+      </BottomSheet>
+
+     </ImageBackground>
+    </View>
+    </TouchableWithoutFeedback>
     </GestureHandlerRootView>
     
-    
-    
   );
 };
 
+const windowWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
-  container: {
-      flex: 1,
-      padding: 20,
+  cunt:{
+    flex:1,
+    backgroundColor:'grey'
   },
-  header: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 20,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)', // Shadow overlay
   },
-  board: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+  bottomSheetContent: {
+    flex:1,
+    alignItems: 'center',
+    justifyContent: 'center',
+
   },
-  column: {
-      flex: 1,
-      padding: 10,
+  sheetContentContainer: {
+    padding: 20,
   },
-  columnHeader: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 10
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  taskList: {
-      flexGrow: 0, // Prevents FlatList from setting flex: 1
+  inputField: {
+    borderWidth: 1,
+    borderColor: '#cccccc',
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
   },
-  taskCard: {
-      backgroundColor: '#f9f9f9',
-      padding: 15,
-      borderRadius: 5,
-      // marginBottom: 10,
-  },
-  taskText: {
-      fontSize: 16,
-  },
-  // ... other styles ...
-  flex1: {
+  image: {
     flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
   },
-  bottomSheet: {
-      // ... your bottom sheet styles ...
-  },
-  contentContainer: {
-      // ... your content container styles ...
-  },
-  containerHeadline: {
-      // ... your container headline styles ...
-  },
-
-
-
+  infoBox:{
+    width:'75%',
+    height:'30%',
+    backgroundColor:'#8000FF',
+    position:'absolute',
+    left:windowWidth*0.125
+  }
 });
 
 export default BoardWrapper;
